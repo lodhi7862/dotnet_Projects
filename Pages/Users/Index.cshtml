@@ -1,0 +1,123 @@
+@page
+@model task.Pages_Users.IndexModel
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Dashboard</h1>
+
+<p>
+    <button id="createNew" class="btn btn-primary">Create New</button>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.User[0].Name)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.User[0].DOB)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.User[0].Cource)
+            </th>
+            <th>Image</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody id="userList">
+@foreach (var item in Model.User) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.DOB)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Cource)
+            </td>
+            <td>
+                <img id="image-@item.Id" src="wwwroot\images" alt="User Image" width="100" />
+                <button class="loadImageButton btn btn-link" data-id="@item.Id">Load Image</button>
+            </td>
+            <td>
+                <button class="editButton btn btn-link" data-id="@item.Id">Edit</button> |
+                <button class="detailsButton btn btn-link" data-id="@item.Id">Details</button> |
+                <form method="post" asp-page-handler="Delete" asp-route-id="@item.Id" style="display:inline;">
+                <button type="submit" class="btn btn-link">Delete</button>
+                </form>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
+
+<div id="modalContainer"></div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <!-- Popper.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            // Load Create Page
+            $('#createNew').on('click', function () {
+                $.get('@Url.Page("Create")', function (data) {
+                    $('#modalContainer').html(data);
+                    $('#createModal').modal('show');
+                });
+            });
+
+            // Load Edit Page
+            $('.editButton').on('click', function () {
+                console.log("edit index here");
+                const id = $(this).data('id');
+                $.get('@Url.Page("Edit")', { id: id }, function (data) {
+                    $('#modalContainer').html(data);
+                    $('#editModal').modal('show');
+                });
+            });
+
+            // Load Details Page
+            $('.detailsButton').on('click', function () {
+                const id = $(this).data('id');
+                $.get('@Url.Page("Details")', { id: id }, function (data) {
+                    $('#modalContainer').html(data);
+                    $('#detailsModal').modal('show');
+                });
+            });
+
+            // Handle Delete
+            $('.deleteButton').on('click', function () {
+                const id = $(this).data('id');
+                $.ajax({
+                    url: '@Url.Page("/Users", "Delete")', // Ensure this points to the correct handler
+                    type: 'POST',
+                    data: JSON.stringify({ id: id }),
+                    contentType: 'application/json; charset=utf-8',
+                    success: function () {
+                        location.reload();
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Delete failed:", xhr.responseText);
+                    }
+                });
+            });
+
+            // Load Image
+            $('.loadImageButton').on('click', function () {
+                const id = $(this).data('id');
+                $.get(`/api/users/image/${id}`, function (data) {
+                    $(`#image-${id}`).attr('src', `data:image/png;base64,${data}`);
+                }).fail(function () {
+                    alert('Failed to load image.');
+                });
+            });
+        });
+    </script>
+}
+

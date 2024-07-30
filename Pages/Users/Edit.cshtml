@@ -1,0 +1,78 @@
+@page
+@model task.Pages_Users.EditModel
+
+@{
+    ViewData["Title"] = "Edit";
+}
+
+<div id="editModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editModalLabel">Edit</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editForm" method="post" asp-page-handler="Edit">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="User.Id" />
+                <div class="form-group">
+                    <label asp-for="User.Name" class="control-label"></label>
+                    <input asp-for="User.Name" class="form-control" />
+                    <span asp-validation-for="User.Name" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="User.DOB" class="control-label"></label>
+                    <input asp-for="User.DOB" class="form-control" id="dob" />
+                    <span asp-validation-for="User.DOB" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="User.Cource" class="control-label"></label>
+                    <input asp-for="User.Cource" class="form-control" />
+                    <span asp-validation-for="User.Cource" class="text-danger"></span>
+                </div>
+            </form>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="saveEdit">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            var today = new Date().toISOString().split('T')[0];
+            document.getElementById('dob').setAttribute('max', today);
+
+            $('#saveEdit').on('click', function () {
+            console.log("edit save here");
+            var formData = $('#editForm').serialize();
+            $.ajax({
+                url: '@Url.Page("Edit")',
+                type: 'POST',
+                data: formData,
+                headers: {
+                    'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function () {
+                    console.log("edit page reloading");
+                    location.reload();
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error saving changes: ", status, error);
+                    console.error(xhr.responseText);  // Log the response from the server
+                }
+            });
+        });
+
+
+        });
+    </script>
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
