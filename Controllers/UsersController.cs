@@ -4,6 +4,7 @@ using task.Data;
 using task.Models;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.IO;
 
 namespace task.Controllers
 {
@@ -39,6 +40,40 @@ namespace task.Controllers
             return user;
         }
 
+        // POST: api/Users/upload/base64
+        [HttpPost("upload/base64")]
+        public async Task<IActionResult> PostUserImage([FromBody] Base64ImageRequest request)
+        {
+            if (string.IsNullOrEmpty(request.Base64Image))
+            {
+                return BadRequest("No image provided.");
+            }
+
+            var user = await _context.User.FindAsync(request.UserId);
+            if (user == null)
+            {
+                return NotFound("User not found.");
+            }
+
+            string filePath = Path.Combine("wwwroot/images", $"{request.UserId}.png");
+            byte[] imageBytes = Convert.FromBase64String(request.Base64Image);
+
+            // Ensure the directory exists
+            var directory = Path.GetDirectoryName(filePath);
+            if (!Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+
+            await System.IO.File.WriteAllBytesAsync(filePath, imageBytes);
+
+            // Update user record with the image filename
+            user.ImageFilename = $"{request.UserId}.png";
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Image uploaded successfully.", imagePath = $"/images/{request.UserId}.png" });
+        }
+
         // POST: api/Users
         [HttpPost]
         public async Task<ActionResult<User>> PostUser([FromForm] User user)
@@ -49,10 +84,10 @@ namespace task.Controllers
             return CreatedAtAction(nameof(GetUser), new { id = user.Id }, user);
         }
 
+        // GET: api/Users/image/5
         [HttpGet("image/{id}")]
         public async Task<IActionResult> GetImage(int id)
         {
-            // Assuming the image is stored at this path
             string filePath = Path.Combine("wwwroot/images", $"{id}.png");
 
             if (!System.IO.File.Exists(filePath))
@@ -64,41 +99,6 @@ namespace task.Controllers
             string base64String = Convert.ToBase64String(imageBytes);
             return Ok(new { base64Image = base64String });
         }
-        // POST: api/Users/upload/base64
-        [HttpPost("upload/base64")]
-        public async Task<IActionResult> UploadBase64Image([FromBody] Base64ImageRequest request)
-        {
-            if (string.IsNullOrEmpty(request.Base64Image))
-            {
-                return BadRequest("No image data provided.");
-            }
-
-            // Decode the Base64 string
-            var imageBytes = Convert.FromBase64String(request.Base64Image);
-
-            // Generate a unique filename
-            var fileName = $"{Guid.NewGuid()}.png";
-            
-            // Define the path to save the file
-            var filePath = Path.Combine("wwwroot/images", fileName);
-
-            // Ensure the directory exists
-            if (!Directory.Exists("wwwroot/images"))
-            {
-                Directory.CreateDirectory("wwwroot/images");
-            }
-
-            // Save the file
-            await System.IO.File.WriteAllBytesAsync(filePath, imageBytes);
-
-            return Ok(new { filePath, message = "File uploaded successfully." });
-        }
-
-        public class Base64ImageRequest
-        {
-            public required string Base64Image { get; set; }
-        }
-
 
         // PUT: api/Users/5
         [HttpPut("{id}")]
@@ -130,7 +130,6 @@ namespace task.Controllers
             return NoContent();
         }
 
-
         // DELETE: api/Users/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(int id)
@@ -150,6 +149,12 @@ namespace task.Controllers
         private bool UserExists(int id)
         {
             return _context.User.Any(e => e.Id == id);
+        }
+
+        public class Base64ImageRequest
+        {
+            public string Base64Image { get; set; }
+            public int UserId { get; set; }
         }
     }
 }

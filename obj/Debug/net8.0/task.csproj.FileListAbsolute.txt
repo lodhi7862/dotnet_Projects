@@ -280,3 +280,4 @@ E:\Tasks\task\obj\Debug\net8.0\ref\task.dll
 E:\Tasks\task\bin\Debug\net8.0\Microsoft.AspNetCore.JsonPatch.dll
 E:\Tasks\task\bin\Debug\net8.0\Microsoft.AspNetCore.Mvc.NewtonsoftJson.dll
 E:\Tasks\task\bin\Debug\net8.0\Newtonsoft.Json.Bson.dll
+E:\Tasks\task\obj\Debug\net8.0\task.sourcelink.json

@@ -10,4 +10,5 @@ public class User
     public DateTime DOB { get; set; }
     public string? Cource { get; set; }
     public string? ImageFilename { get; set; }
+    
 }

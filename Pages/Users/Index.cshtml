@@ -39,20 +39,28 @@
                 @Html.DisplayFor(modelItem => item.Cource)
             </td>
             <td>
-                <img id="image-@item.Id" src="wwwroot\images" alt="User Image" width="100" />
-                <button class="loadImageButton btn btn-link" data-id="@item.Id">Load Image</button>
+                <!-- Image element for displaying user image -->
+                <img id="userImage-@item.Id" src="/images/@item.ImageFilename" alt="User Image" style="width: 100px; height: 100px;">
             </td>
             <td>
                 <button class="editButton btn btn-link" data-id="@item.Id">Edit</button> |
                 <button class="detailsButton btn btn-link" data-id="@item.Id">Details</button> |
                 <form method="post" asp-page-handler="Delete" asp-route-id="@item.Id" style="display:inline;">
-                <button type="submit" class="btn btn-link">Delete</button>
+                    <button type="submit" class="btn btn-link">Delete</button>
+                </form>
+                <!-- Separate form for image upload -->
+                <form id="uploadImageForm-@item.Id" onsubmit="uploadImage(event, '@item.Id')" enctype="multipart/form-data">
+                    <input type="file" id="fileInput-@item.Id" name="file">
+                    <button type="submit" class="btn btn-primary">Upload Image</button>
                 </form>
             </td>
         </tr>
 }
     </tbody>
 </table>
+
+<!-- Add an element to display the upload result -->
+<div id="uploadResult"></div>
 
 <div id="modalContainer"></div>
 
@@ -74,7 +82,6 @@
 
             // Load Edit Page
             $('.editButton').on('click', function () {
-                console.log("edit index here");
                 const id = $(this).data('id');
                 $.get('@Url.Page("Edit")', { id: id }, function (data) {
                     $('#modalContainer').html(data);
@@ -95,7 +102,7 @@
             $('.deleteButton').on('click', function () {
                 const id = $(this).data('id');
                 $.ajax({
-                    url: '@Url.Page("/Users", "Delete")', // Ensure this points to the correct handler
+                    url: '@Url.Page("/Users", "Delete")',
                     type: 'POST',
                     data: JSON.stringify({ id: id }),
                     contentType: 'application/json; charset=utf-8',
@@ -107,17 +114,44 @@
                     }
                 });
             });
-
-            // Load Image
-            $('.loadImageButton').on('click', function () {
-                const id = $(this).data('id');
-                $.get(`/api/users/image/${id}`, function (data) {
-                    $(`#image-${id}`).attr('src', `data:image/png;base64,${data}`);
-                }).fail(function () {
-                    alert('Failed to load image.');
-                });
-            });
         });
+
+        function getBase64(file, callback) {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = function () {
+                callback(reader.result.split(',')[1]); // Get only the base64 string, without the data prefix
+            };
+            reader.onerror = function (error) {
+                console.log('Error: ', error);
+            };
+        }
+
+        function uploadImage(event, userId) {
+        event.preventDefault();
+        const fileInput = document.getElementById(`fileInput-${userId}`);
+        const file = fileInput.files[0];
+        if (file) {
+            getBase64(file, function(base64String) {
+                fetch('/api/users/upload/base64', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ base64Image: base64String, userId: userId }) // Include the userId in the request
+                })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('uploadResult').innerText = data.message;
+                    if (data.imagePath) {
+                        // Update the image source for the specific user
+                        document.getElementById(`userImage-${userId}`).src = data.imagePath;
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            });
+        }
+    }
+
     </script>
 }
-

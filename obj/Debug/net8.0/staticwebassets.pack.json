@@ -13,6 +13,18 @@
       "PackagePath": "staticwebassets\\favicon.ico"
     },
     {
+      "Id": "E:\\Tasks\\task\\wwwroot\\images\\1104e362-6d9a-443e-8ff6-2df8c3c9d438.png",
+      "PackagePath": "staticwebassets\\images\\1104e362-6d9a-443e-8ff6-2df8c3c9d438.png"
+    },
+    {
+      "Id": "E:\\Tasks\\task\\wwwroot\\images\\1e849bd1-615a-4941-b3bc-5cd312cf9bf0.png",
+      "PackagePath": "staticwebassets\\images\\1e849bd1-615a-4941-b3bc-5cd312cf9bf0.png"
+    },
+    {
+      "Id": "E:\\Tasks\\task\\wwwroot\\images\\f1b40453-6d0a-40b6-8ef2-8bef6b6144b5.png",
+      "PackagePath": "staticwebassets\\images\\f1b40453-6d0a-40b6-8ef2-8bef6b6144b5.png"
+    },
+    {
       "Id": "E:\\Tasks\\task\\wwwroot\\js\\site.js",
       "PackagePath": "staticwebassets\\js\\site.js"
     },
